@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 import math
-
 from exceptions1 import OutOfSampleError
 
 
@@ -19,39 +18,32 @@ class Predictor(ABC):
         """
         pass
 
-
-    def validate_patient(self,patient):
-        for i in range(1,10):
+    def validate_patient(self, patient):
+        """
+        Check that Feature1 through Feature9 fall within historical [min, max].
+        Raises OutOfSampleError for the first out-of-range feature encountered.
+        """
+        for i in range(1, 10):
             feature = f"Feature{i}"
-
-            minimun = self.historical_data.get_column_min(feature)
-            maximum = self.historical_data.get_column_max(feature)
-
             if feature in patient:
-                value = patient[feature]
+                col_min = self.historical_data.get_column_min(feature)
+                col_max = self.historical_data.get_column_max(feature)
+                val = patient[feature]
 
-                if value < minimun or value > maximum:
-                    raise OutOfSampleError (f"{feature} is outside of historical range")
-                
+                if val < col_min or val > col_max:
+                    raise OutOfSampleError(
+                        f"{feature} with value {val} is outside historical range [{col_min}, {col_max}]"
+                    )
 
 
 class MajorityClassPredictor(Predictor):
 
     def __init__(self, historical_data):
         super().__init__(historical_data)
-        self.majority_class = None
-
-        tumor_type = self.historical_data.get_column("TumorType")
-
-        benign = tumor_type.count(0)
-        malignant = tumor_type.count(1)
-
-        if benign > malignant:
-            self.majority_class = 0
-        else:
-            self.majority_class = 1
-
-        # TODO: calculate most common TumorType
+        tumor_types = self.historical_data.get_column("TumorType")
+        benign = tumor_types.count(0.0)
+        malignant = tumor_types.count(1.0)
+        self.majority_class = 0 if benign >= malignant else 1
 
     def predict(self, patient):
         """
@@ -61,7 +53,6 @@ class MajorityClassPredictor(Predictor):
         return self.majority_class
 
 
-
 class NearestNeighborPredictor(Predictor):
 
     def __init__(self, historical_data):
@@ -69,39 +60,27 @@ class NearestNeighborPredictor(Predictor):
 
     def distance(self, patient1, patient2):
         """
-        Calculate Euclidean distance using Feature1-Feature9 only.
+        Calculate Euclidean distance using Feature1-Feature9 only (not TumorType).
         """
-
-        total = 0
-
+        total = 0.0
         for i in range(1, 10):
             feature = f"Feature{i}"
-
-            difference = (patient1[feature] - patient2[feature]) ** 2
-
-            total += difference
-
+            diff = patient1[feature] - patient2[feature]
+            total += diff ** 2
         return math.sqrt(total)
-
-
-
 
     def predict(self, patient):
         """
-        Find closest historical patient and return its TumorType.
+        Find the closest historical patient and return their TumorType.
         """
         self.validate_patient(patient)
         closest_distance = float("inf")
         prediction = None
 
         for historical_patient in self.historical_data.data:
-            distance = self.distance(patient, historical_patient)
-
-            if distance < closest_distance:
-                closest_distance = distance
-                prediction = historical_patient["TumorType"]
-
+            d = self.distance(patient, historical_patient)
+            if d < closest_distance:
+                closest_distance = d
+                prediction = int(historical_patient["TumorType"])
 
         return prediction
-    
-        
