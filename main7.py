@@ -69,12 +69,14 @@ def main():
     print(
         "Mode accuracy:",
         calculate_accuracy(mode_predictions, actual_labels),
-    "%")
+    "%"
+    )
 
     print(
         "Nearest Neighbor accuracy:",
         calculate_accuracy(nn_predictions, actual_labels),
-   "%" )
+   "%"
+   )
 
 
 if __name__ == "__main__":
