@@ -2,7 +2,47 @@ import csv
 
 
 class DataTable:
-    def __init__(self, csv_path: str):
+    def __init__(self, csv_path: str, historical_averages = None):
+
+        self.data = []
+
+        with open(csv_path, "r") as file:
+            reader = csv.DictReader(file)
+
+            for row in reader:
+                for col in row:
+                    if row[col] == "?":
+                        row[col] == float(row[col])
+                    
+
+                self.data.append(row)
+
+    if historical_averages is None:
+
+        self.column_averages = {}
+
+        for col in self.data[0]:
+            valid_values = []
+
+            for row in self.data:
+                if row[col] != "?":
+                    valid_values.append(row[col])
+
+            average = sum(valid_values) / len(valid_values)
+            self.column_averages[col] = average
+
+
+        for row in self.data:
+            for col in row:
+                if row[col] == "?":
+                    row[col] = self.column_averages[col]
+
+            
+    else:
+        self.column_averages = histrocal_averages
+        
+
+
         """
         Load CSV data into memory.
         Convert all values to float.
