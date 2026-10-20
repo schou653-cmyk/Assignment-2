@@ -12,7 +12,7 @@ class DataTable:
             for row in reader:
                 for col in row:
                     if row[col] != "?":
-                        row[col] == float(row[col])
+                        row[col] = float(row[col])
                     
 
                 self.data.append(row)
@@ -41,20 +41,10 @@ class DataTable:
                     row[col] = self.column_averages[col]
 
 
-
-        """
-        Load CSV data into memory.
-        Convert all values to float.
-        """
-        pass
-
     def get(self, row_idx: int, col_name: str):
 
         return self.data[row_idx][col_name]
     
-        """
-        Return a single value from a row and column.
-        """
 
     def get_column(self, col_name: str) -> list:
 
